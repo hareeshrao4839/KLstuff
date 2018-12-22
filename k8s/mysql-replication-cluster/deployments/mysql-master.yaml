@@ -1,0 +1,52 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: portal-mysql-master
+  labels:
+    name: portal-mysql-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: portal-mysql-master
+  template:
+    metadata:
+      labels:
+        name: portal-mysql-master
+    spec:
+      containers:
+        - name: master
+          image: hareeshrao4839/k8s-mysql-m-s:M
+          args:
+            - "--ignore-db-dir"
+            - "lost+found"
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "test"
+            - name: MYSQL_REPLICATION_USER
+              value: 'demo'
+            - name: MYSQL_REPLICATION_PASSWORD
+              value: 'demo'
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: sql-data
+      volumes:
+        - name: sql-data
+          persistentVolumeClaim:
+            claimName: mysql-master-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portal-mysql-master-svc
+  labels:
+    name: portal-mysql-master
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+      name: portal-mysql-master
+
